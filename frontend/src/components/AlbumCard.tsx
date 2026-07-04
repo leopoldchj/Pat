@@ -2,6 +2,7 @@ import React from "react"
 import { Card, CardContent, CardMedia, Typography, CardActionArea, Box } from "@mui/material"
 import HideImageIcon from "@mui/icons-material/HideImage"
 import { Album } from "../types/album"
+import mediaUrl from "../utils/mediaUrl"
 import AlbumEditModal from "./UpdateAlbumModal"
 import { useNavigate } from "react-router-dom"
 
@@ -37,7 +38,7 @@ function AlbumCard({ album }: { album: Album }) {
                         <CardMedia
                             component="img"
                             height="180"
-                            image={album.cover_image}
+                            image={mediaUrl(album.cover_image, { w: 480 })}
                             alt={`Couverture de l'album ${album.title}`}
                             sx={{ objectFit: "cover", height: "100%" }}
                         />

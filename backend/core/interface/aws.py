@@ -1,4 +1,5 @@
-from core.exceptions.exceptions import CloudUploadError
+from core.exceptions.exceptions import CloudUploadError, ResourceNotFound
+from core.image_normalizer import normalize_to_web_format
 from core.interface.photo_saver_repository import PhotoSaverRepository
 import boto3
 from botocore.exceptions import NoCredentialsError, ClientError, BotoCoreError
@@ -65,6 +66,7 @@ class AwsPhotoSaver(PhotoSaverRepository):
             raise CloudUploadError("Échec de la suppression depuis S3")
 
     def save_within_folder(self, file, folder_album_id) -> str:
+        file = normalize_to_web_format(file)
         file_name = self._generate_unique_name(file.name)
 
         file_key = f"{folder_album_id}/{file_name}"
@@ -76,6 +78,7 @@ class AwsPhotoSaver(PhotoSaverRepository):
         return self._get_s3_resource_url(file_key)
 
     def save(self, file) -> str:
+        file = normalize_to_web_format(file)
         file_key = self._generate_unique_name(file.name)
 
         if DEBUG:
@@ -104,6 +107,22 @@ class AwsPhotoSaver(PhotoSaverRepository):
         file_key = self._extract_key_from_url(file_url)
 
         return self._delete_from_s3(file_key)
+
+    def fetch(self, file_url: str) -> tuple[bytes, str]:
+        file_key = self._extract_key_from_url(file_url)
+        s3 = self._get_s3_client()
+        try:
+            obj = s3.get_object(Bucket=AWS_BUCKET_NAME, Key=file_key)
+            return obj["Body"].read(), obj.get("ContentType", "application/octet-stream")
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code", "")
+            if error_code in ("NoSuchKey", "404"):
+                raise ResourceNotFound(f"Fichier absent de S3: {file_key}")
+            print(f"Erreur téléchargement S3: {e}")
+            raise CloudUploadError("Échec du téléchargement depuis S3")
+        except (NoCredentialsError, BotoCoreError) as e:
+            print(f"Erreur téléchargement S3: {e}")
+            raise CloudUploadError("Échec du téléchargement depuis S3")
 
     def copy_file(self, source_url: str, target_album_id) -> str:
         source_key = self._extract_key_from_url(source_url)

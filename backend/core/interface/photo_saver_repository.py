@@ -19,3 +19,7 @@ class PhotoSaverRepository(ABC):
     @abstractmethod
     def copy_file(self, source_url: str, target_album_id) -> str:
         pass
+
+    @abstractmethod
+    def fetch(self, file_url: str) -> tuple[bytes, str]:
+        pass

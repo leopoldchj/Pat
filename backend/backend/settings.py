@@ -195,6 +195,21 @@ CHANNEL_LAYERS = {
     },
 }
 
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": f"redis://{os.getenv('REDIS_HOST', 'localhost')}:6379/1",
+        "TIMEOUT": 60 * 60 * 24 * 7,
+    }
+}
+
+# Media proxy tuning (backend-served photos)
+MEDIA_ALLOWED_WIDTHS = [240, 480, 960, 1920]  # bounds cache cardinality
+MEDIA_MAX_DIMENSION = 1920  # auto-downscale threshold for full-size requests
+MEDIA_RECOMPRESS_BYTES = 500 * 1024  # recompress originals bigger than this
+MEDIA_CACHE_MAX_BYTES = 5 * 1024 * 1024  # never cache blobs bigger than this
+MEDIA_WEBP_QUALITY = 80
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
