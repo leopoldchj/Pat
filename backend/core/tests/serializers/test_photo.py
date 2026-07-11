@@ -1,5 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
+from core import media_signing
+from core.serializers.album import media_cache_buster
 from core.serializers.photo import PhotoSerializer
 from core.models.photo import Photo
 from core.models.album import Album
@@ -39,13 +41,18 @@ class TestPhotoSerializer(unittest.TestCase):
         mock_photo.created_at = "2023-01-01"
         mock_photo.updated_at = "2023-01-02"
         mock_photo.album = self.mock_album
+        self.mock_album.cover_image = None
 
         mock_album_photo.objects.filter.return_value.count.return_value = 0
 
         serializer = PhotoSerializer(instance=mock_photo)
         data = serializer.data
 
-        self.assertEqual(data["image_url"], TEST_IMAGE_URL)
+        expected_url = (
+            f"/api/media/photos/{TEST_PHOTO_ID}/{media_signing.sign(TEST_IMAGE_URL)}/"
+            f"?v={media_cache_buster(TEST_IMAGE_URL)}"
+        )
+        self.assertEqual(data["image_url"], expected_url)
 
     def test_givenUnauthenticatedUser_whenCreate_thenShouldReturnNone(self):
         self.mock_user.is_authenticated = False
@@ -71,6 +78,19 @@ class TestPhotoSerializer(unittest.TestCase):
         self.mock_user.is_authenticated = True
 
         self.serializer.create(TEST_VALID_DATA)
+
+        mock_create.assert_called_once_with(album=self.mock_album, **TEST_VALID_DATA)
+
+    @patch("core.serializers.photo.Photo.objects.create")
+    def test_givenAlbumInValidatedData_whenCreate_thenShouldNotPassAlbumTwice(
+        self, mock_create
+    ):
+        # serializer.save(album=...) injects album into validated_data:
+        # create() must not forward it twice to objects.create()
+        self.mock_user.is_authenticated = True
+        data_with_album = {**TEST_VALID_DATA, "album": self.mock_album}
+
+        self.serializer.create(data_with_album)
 
         mock_create.assert_called_once_with(album=self.mock_album, **TEST_VALID_DATA)
 

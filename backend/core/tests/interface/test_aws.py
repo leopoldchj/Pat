@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 from core.interface.aws import AwsPhotoSaver
-from core.exceptions.exceptions import CloudUploadError
+from core.exceptions.exceptions import CloudUploadError, ResourceNotFound
 from botocore.exceptions import ClientError
 
 TEST_AWS_BUCKET_NAME = "testing_bucket_name"
@@ -172,3 +172,64 @@ class TestAwsPhotoSaver(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestAwsPhotoSaverFetch(unittest.TestCase):
+
+    def setUp(self):
+        self.aws_saver = AwsPhotoSaver()
+
+    @patch("core.interface.aws.boto3")
+    @patch("core.interface.aws.AWS_BUCKET_NAME", TEST_AWS_BUCKET_NAME)
+    @patch("core.interface.aws.AWS_REGION", TEST_AWS_REGION)
+    def test_givenExistingKey_whenFetch_thenShouldReturnBytesAndContentType(
+        self, mock_boto3
+    ):
+        mock_s3_client = MagicMock()
+        mock_boto3.client.return_value = mock_s3_client
+        mock_body = MagicMock()
+        mock_body.read.return_value = b"image bytes"
+        mock_s3_client.get_object.return_value = {
+            "Body": mock_body,
+            "ContentType": "image/jpeg",
+        }
+
+        data, content_type = self.aws_saver.fetch(TEST_EXPECTED_URL)
+
+        self.assertEqual(data, b"image bytes")
+        self.assertEqual(content_type, "image/jpeg")
+        mock_s3_client.get_object.assert_called_once_with(
+            Bucket=TEST_AWS_BUCKET_NAME, Key=TEST_S3_KEY
+        )
+
+    @patch("core.interface.aws.boto3")
+    @patch("core.interface.aws.AWS_BUCKET_NAME", TEST_AWS_BUCKET_NAME)
+    @patch("core.interface.aws.AWS_REGION", TEST_AWS_REGION)
+    def test_givenMissingKey_whenFetch_thenShouldRaiseResourceNotFound(
+        self, mock_boto3
+    ):
+        mock_s3_client = MagicMock()
+        mock_boto3.client.return_value = mock_s3_client
+        mock_s3_client.get_object.side_effect = ClientError(
+            {"Error": {"Code": "NoSuchKey", "Message": "does not exist"}},
+            "GetObject",
+        )
+
+        with self.assertRaises(ResourceNotFound):
+            self.aws_saver.fetch(TEST_EXPECTED_URL)
+
+    @patch("core.interface.aws.boto3")
+    @patch("core.interface.aws.AWS_BUCKET_NAME", TEST_AWS_BUCKET_NAME)
+    @patch("core.interface.aws.AWS_REGION", TEST_AWS_REGION)
+    def test_givenOtherS3Error_whenFetch_thenShouldRaiseCloudUploadError(
+        self, mock_boto3
+    ):
+        mock_s3_client = MagicMock()
+        mock_boto3.client.return_value = mock_s3_client
+        mock_s3_client.get_object.side_effect = ClientError(
+            {"Error": {"Code": "AccessDenied", "Message": "denied"}},
+            "GetObject",
+        )
+
+        with self.assertRaises(CloudUploadError):
+            self.aws_saver.fetch(TEST_EXPECTED_URL)

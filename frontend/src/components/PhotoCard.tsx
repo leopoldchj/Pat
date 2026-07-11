@@ -26,6 +26,7 @@ import DriveFileMoveIcon from "@mui/icons-material/DriveFileMove"
 import ContentCopyIcon from "@mui/icons-material/ContentCopy"
 import EditIcon from "@mui/icons-material/Edit"
 import { Photo } from "../types/photo"
+import mediaUrl from "../utils/mediaUrl"
 import { IAlbum } from "../types/album"
 import {
     useDeletePhotoMutation,
@@ -164,7 +165,7 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
                 {photo.image_url ? (
                     <CardMedia
                         component="img"
-                        image={photo.image_url}
+                        image={mediaUrl(photo.image_url, { w: 480 })}
                         alt={photo.caption || "Photo"}
                         sx={{
                             width: "100%",
@@ -457,7 +458,7 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
                         {/* Download button */}
                         <Box
                             component="a"
-                            href={photo.image_url}
+                            href={mediaUrl(photo.image_url, { download: true })}
                             download
                             sx={{
                                 backgroundColor: "rgba(0,0,0,0.6)",
@@ -510,7 +511,7 @@ const PhotoCard = ({ photo, albumId }: PhotoCardProps) => {
                     >
                         <Box
                             component="img"
-                            src={photo.image_url}
+                            src={mediaUrl(photo.image_url)}
                             alt={photo.caption || "Photo"}
                             sx={{
                                 width: "100%",
