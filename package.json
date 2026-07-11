@@ -3,11 +3,16 @@
     "version": "1.0.0",
     "private": true,
     "scripts": {
-        "start": "npm start --prefix frontend",
+        "start": "dotenv -e .env -- npm start --prefix frontend",
+        "dev": "concurrently -n django,react -c blue,green \"uv run python manage.py runserver\" \"npm run start\"",
         "build": "npm run build --prefix frontend",
         "test": "npm test --prefix frontend",
-        "install-all": "npm install --prefix frontend",
+        "install-all": "npm install && npm install --prefix frontend",
         "lint": "npm run lint --prefix frontend",
         "lint:fix": "npm run lint:fix --prefix frontend"
+    },
+    "devDependencies": {
+        "concurrently": "^10.0.3",
+        "dotenv-cli": "^11.0.0"
     }
 }

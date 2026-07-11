@@ -10,7 +10,7 @@ It allows for an easy production deployment via **Docker Compose** or local deve
 The easiest way to run the application is using Docker Compose.
 
 ### 1. Configure Environment Variables
-Create a **single** `.env` file in the root directory.
+Create a **single** `.env` file in the root directory (copy `.env.example` as a starting point: `cp .env.example .env`).
 This unified configuration file is used by both the **Backend** (Django) and the **Frontend** (React/Docker).
 See the [Environment Variables](#environment-variables) section below for details.
 
@@ -60,7 +60,17 @@ npm run install-all
 npm start
 ```
 
-### 4. Code Quality
+`npm start` injects the root `.env` (including the `REACT_APP_*` variables) into the React dev server — no separate `frontend/.env` is needed.
+
+### 4. Run Both at Once
+
+```bash
+npm run dev
+```
+
+Starts the Django backend and the React frontend together (requires backend setup from step 2).
+
+### 5. Code Quality
 - **Backend Tests**: `uv run pytest`
 - **Frontend Lint**: `npm run lint` or `npm run lint:fix`
 
@@ -104,6 +114,8 @@ Required variables for both Docker and local setups:
 | `AWS_ACCESS_SECRET`| AWS Secret Key | `secret...` |
 | `AWS_REGION` | AWS Region | `eu-west-3` |
 | `AWS_BUCKET_NAME` | S3 Bucket Name | `my-bucket` |
+| `REACT_APP_API_URL` | Backend API URL (local dev only) | `http://127.0.0.1:8000/api/` |
+| `REACT_APP_WS_URL` | Backend WebSocket URL (local dev only) | `ws://127.0.0.1:8000/ws/` |
 
 ### Optional Build Arguments (Docker)
 | Variable | Description |
