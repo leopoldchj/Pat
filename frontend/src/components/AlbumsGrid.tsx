@@ -2,9 +2,11 @@ import React from "react"
 import { Box } from "@mui/material"
 import AlbumCard from "./AlbumCard"
 import { useAlbums } from "../queries/albums"
+import { useAlbumsWebSocketSync } from "../hooks/useAlbumsWebSocketSync"
 
 function AlbumsGrid() {
     const { data: albums = [] } = useAlbums()
+    useAlbumsWebSocketSync()
 
     return (
         <Box
