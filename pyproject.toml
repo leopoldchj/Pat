@@ -7,7 +7,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "python-dotenv>=1.2.2",
-    "django>=6.0.6",
+    "django>=6.0.7",
     "pymysql>=1.1.1",
     "channels>=4.2.2",
     "djangorestframework>=3.16.0",
