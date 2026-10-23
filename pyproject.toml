@@ -16,7 +16,7 @@ dependencies = [
     "daphne>=4.2.2",
     "channels-redis>=4.2.1",
     "boto3>=1.39.15",
-    "black>=26.1.0",
+    "black>=26.10.1",
     "pillow>=12.3.0",
     "pillow-heif>=1.4.0",
 ]
