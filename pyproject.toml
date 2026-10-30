@@ -28,7 +28,7 @@ dev = [
     "pytest-cov>=6.0.0",
     "pytest-timeout>=2.3.0",
     "coverage>=7.6.0",
-    "fpdf2>=2.8.5",
+    "fpdf2>=2.8.8",
 ]
 
 
